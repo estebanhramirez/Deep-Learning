@@ -21,6 +21,7 @@ model = Net(device = device)
 model_path= "models/lenet_fashion_mnist_model.pth"
 model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
 model.eval()  # Set the model to evaluation mode
+
 test_loss = 0
 correct = 0
 
