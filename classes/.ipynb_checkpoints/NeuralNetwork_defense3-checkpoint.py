@@ -18,21 +18,20 @@ class Net(nn.Module):
         self.fc1 = nn.Linear(9216, 128)
         self.fc2 = nn.Linear(128, 10)
 
-        # Define a mean filter kernel #3rd Defense method
+        # Define the mean filter kernel.
         self.mean_filter = torch.ones((1, 1, 3, 3)) / 9.0
         self.mean_filter = self.mean_filter.to(device)
 
     def forward(self, x):
+        # Apply mean filtering to the input data: mean filtering with padding.
+        x = F.conv2d(x, self.mean_filter, padding=1)
+        
         x = self.conv1(x)
         x = F.relu(x)
 
-        #Quantization to mask the gradient  #1st Defence method
-        x = torch.round(x * 100)/100
         x = self.conv2(x)
         x = F.relu(x)
         
-        #Quantization to mask the gradient
-        x = torch.round(x * 100)/100
         x = F.max_pool2d(x, 2)
         x = self.dropout1(x)
         x = torch.flatten(x, 1)
@@ -43,3 +42,4 @@ class Net(nn.Module):
         
         output = F.log_softmax(x, dim=1)
         return output
+
