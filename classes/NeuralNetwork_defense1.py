@@ -6,9 +6,9 @@ import torch.nn.functional as F
 # ==================================================== CLASS DECLARATION ===================================================== #
 
 
-class Net(nn.Module):
+class Net_defense1(nn.Module):
     def __init__(self, device):
-        super(Net, self).__init__()
+        super(Net_defense1, self).__init__()
         self.to(device)
         
         self.conv1 = nn.Conv2d(1, 32, 3, 1)
@@ -42,3 +42,5 @@ class Net(nn.Module):
         output = F.log_softmax(x, dim=1)
         return output
 
+    def __str__():
+        return ("-defense-1")

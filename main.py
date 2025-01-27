@@ -9,11 +9,16 @@ import torch.nn.functional as F
 from torchvision import transforms
 
 sys.path.append('classes')
+from NeuralNetwork_baseline import Net_baseline
+from NeuralNetwork_defense1 import Net_defense1
+from NeuralNetwork_defense3 import Net_defense3
+
 sys.path.append('attacks')
-from NeuralNetwork import Net
 from fgsm_attack import fgsm_attack
 
+
 # ================================================== FUNCTIONS DECLARATION ================================================== #
+
 
 def test( model, device, test_loader, epsilon ):
 
@@ -46,10 +51,6 @@ def test( model, device, test_loader, epsilon ):
 
         # Calculate gradients of model in backward pass
         loss.backward()
-        
-        # #Implement Gradient cliping #2nd Defence method
-        # for param in model.parameters(): #Cliping does not take place for some reason
-        #     param.grad = torch.clamp(param.grad, -0.01, 0.01)
 
         # Collect ``datagrad``
         data_grad = data.grad.data
@@ -107,16 +108,19 @@ def denorm(batch, mean=[0.1307], std=[0.3081]):
 
     return batch * std.view(1, -1, 1, 1) + mean.view(1, -1, 1, 1)
 
+# ================================================= PARAMETERS ============================================================== #
+
+Net = Net_defense3
+
 # ================================================= BEGINNING OF EXECUTION ================================================== #
 
 # Define the device (use GPU if available, otherwise CPU)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Using device: {device}")
 
-# Move the model to the selected device
 model = Net(device = device)
 
-model_path= "models/lenet_fashion_mnist_model.pth"
+model_path= "trained_models/lenet_fashion_mnist_model.pth"
 model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
 model.eval()  # Set the model to evaluation mode
 
@@ -133,7 +137,7 @@ test_dataset = torchvision.datasets.FashionMNIST(root = "data/",
 
 print(f"Number of test samples: {len(test_dataset)}")
 
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False) 
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False)
 
 #Run the attack!
 epsilons = [0, .05, .1, .15, .2, .25, .3]
@@ -146,7 +150,7 @@ for eps in epsilons:
     acc, ex = test(model, device, test_loader, eps)
     accuracies.append(acc)
     examples.append(ex)
-    
+
 plt.figure(figsize=(5,5))
 plt.plot(epsilons, accuracies, "*-")
 plt.yticks(np.arange(0, 1.1, step=0.1))
@@ -154,4 +158,4 @@ plt.xticks(np.arange(0, .35, step=0.05))
 plt.title("Accuracy vs Epsilon")
 plt.xlabel("Epsilon")
 plt.ylabel("Accuracy")
-plt.savefig("images/foo.png")
+plt.savefig("images/foo"+Net.__str__()+".png")
